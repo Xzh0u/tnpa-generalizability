@@ -11,11 +11,11 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.util.ArrayList;
 import java.util.Objects;
 
-
 public class BooleanExchange extends VoidVisitorAdapter<Object> {
     private final ArrayList<Node> mBooleanNodes = new ArrayList<>();
 
-    BooleanExchange() { }
+    BooleanExchange() {
+    }
 
     public void inspectSourceCode(CompilationUnit cu) {
         Common.setOutputPath(this);
@@ -61,7 +61,7 @@ public class BooleanExchange extends VoidVisitorAdapter<Object> {
                             if (parNode.getValue().toString().equals(bolNode.toString())) {
                                 // i.e. y = x; -> y = !x;
                                 parNode.setValue(StaticJavaParser.parseExpression(getNotExpStr(parNode.getValue())));
-                            } else if (parNode.getTarget().toString().equals(bolNode.toString())){
+                            } else if (parNode.getTarget().toString().equals(bolNode.toString())) {
                                 // i.e. x = r() && x; -> x = !(r() && !x);
                                 new TreeVisitor() {
                                     @Override
@@ -69,7 +69,7 @@ public class BooleanExchange extends VoidVisitorAdapter<Object> {
                                         if (node != null && node.toString().equals(bolNode.toString())) {
                                             if (node.getParentNode().orElse(null) instanceof UnaryExpr) {
                                                 node.getParentNode().orElse(null).replace(node);
-                                            } else if (node instanceof NameExpr){
+                                            } else if (node instanceof NameExpr) {
                                                 ((NameExpr) node).setName(getNotExpStr(node));
                                             }
                                         }
@@ -84,7 +84,7 @@ public class BooleanExchange extends VoidVisitorAdapter<Object> {
                             VariableDeclarator parNode = (VariableDeclarator) node.getParentNode().orElse(null);
                             if (parNode.getName().asString().equals(bolNode.toString())
                                     && parNode.getInitializer().isPresent()) {
-                                //i.e. boolean x = true; -> boolean x = false;
+                                // i.e. boolean x = true; -> boolean x = false;
                                 Expression expVal = parNode.getInitializer().get();
                                 expVal.replace(StaticJavaParser.parseExpression(getNotExpStr(expVal)));
                             }
@@ -98,7 +98,7 @@ public class BooleanExchange extends VoidVisitorAdapter<Object> {
 
     private String getNotExpStr(Node node) {
         if (node instanceof BooleanLiteralExpr) {
-            boolean val = !((BooleanLiteralExpr)node).getValue();
+            boolean val = !((BooleanLiteralExpr) node).getValue();
             return String.valueOf(val);
         } else {
             String expStr = "!";
@@ -116,8 +116,8 @@ public class BooleanExchange extends VoidVisitorAdapter<Object> {
                 && node.getParentNode().orElse(null) instanceof VariableDeclarator) {
             VariableDeclarator parentNode = (VariableDeclarator) node.getParentNode().get();
             if (parentNode.getInitializer().isPresent()) {
-                for (SimpleName sn : Objects.requireNonNull(node.getParentNode()
-                        .orElse(null)).findAll(SimpleName.class)) {
+                for (SimpleName sn : Objects.requireNonNull(node.getParentNode().orElse(null))
+                        .findAll(SimpleName.class)) {
                     if (!sn.toString().equalsIgnoreCase(PrimitiveType.booleanType().asString())) {
                         return sn;
                     }

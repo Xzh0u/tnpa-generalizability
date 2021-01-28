@@ -6,38 +6,40 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.*;
 
 import java.io.*;
-import java.nio.file.Files;
+// import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-
 
 public final class Common {
 
     static double TH_PERCENT = 0;
     static String ROOT_INPUT_DIR = "";
+    static String ROOT_INPUT_CODE = "";
     static String ROOT_OUTPUT_DIR = "";
-    static File CURRENT_JAVA_FILE = null;
+    // static File CURRENT_JAVA_FILE = null;
     static String OUTPUT_JAVA_FILE = "";
 
-    static final DataKey<Integer> KEY_VARIABLE_ID = new DataKey<Integer>() {};
-    static final DataKey<String> KEY_VARIABLE_NAME = new DataKey<String>() {};
+    static final DataKey<Integer> KEY_VARIABLE_ID = new DataKey<Integer>() {
+    };
+    static final DataKey<String> KEY_VARIABLE_NAME = new DataKey<String>() {
+    };
 
     static void setOutputPath(Object obj) {
-        Common.OUTPUT_JAVA_FILE = Paths.get(
-                Common.ROOT_OUTPUT_DIR,
-                obj.getClass().getSimpleName(),
-                Common.CURRENT_JAVA_FILE.getPath().replaceFirst(Common.ROOT_INPUT_DIR, "")
-        ).toString();
+        Common.OUTPUT_JAVA_FILE = Paths.get(Common.ROOT_OUTPUT_DIR, obj.getClass().getSimpleName(), "changed.java")
+                .toString();
     }
+    // Common.CURRENT_JAVA_FILE.getPath().replaceFirst(Common.ROOT_INPUT_DIR, "")
 
-    static CompilationUnit getParseUnit(File javaFile) {
+    static CompilationUnit getParseUnit(String inputCode) {
         CompilationUnit root = null;
         try {
-            String txtCode = new String(Files.readAllBytes(javaFile.toPath()));
+            // String txtCode = new String(Files.readAllBytes(javaFile.toPath()));
+            String txtCode = inputCode;
             txtCode = "class T { \n" + txtCode + "\n}";
             root = StaticJavaParser.parse(txtCode);
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
         return root;
     }
 
@@ -47,7 +49,7 @@ public final class Common {
             Node node = nodeList.get(i);
             CompilationUnit newCu = applyByObj(obj, cu.clone(), node.clone());
             if (newCu != null && Common.checkTransformation(cu, newCu)) {
-                Common.saveTransformation(newCu, String.valueOf(i+1));
+                Common.saveTransformation(newCu, String.valueOf(i + 1));
             }
         }
 
@@ -77,22 +79,22 @@ public final class Common {
             } else if (obj instanceof UnusedStatement) {
                 newCu = ((UnusedStatement) obj).applyTransformation(cu, node);
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
         return newCu;
     }
 
     static Boolean checkTransformation(CompilationUnit oldCu, CompilationUnit newCu) {
         MethodDeclaration oldMd = (MethodDeclaration) (oldCu.getChildNodes().get(0)).getChildNodes().get(1);
-        String oldMdStr = oldMd.toString().trim()
-                .replaceAll("\n", "").replaceAll("\\s+", "");
+        String oldMdStr = oldMd.toString().trim().replaceAll("\n", "").replaceAll("\\s+", "");
         MethodDeclaration newMd = (MethodDeclaration) (newCu.getChildNodes().get(0)).getChildNodes().get(1);
-        String newMdStr = newMd.toString().trim()
-                .replaceAll("\n", "").replaceAll("\\s+", "");
+        String newMdStr = newMd.toString().trim().replaceAll("\n", "").replaceAll("\\s+", "");
         return oldMdStr.compareTo(newMdStr) != 0;
     }
 
     static void saveTransformation(CompilationUnit newCu, String place) {
         String transformFile = Common.OUTPUT_JAVA_FILE;
+        // FIXME: Here is an error
         transformFile = transformFile.substring(0, transformFile.lastIndexOf(".java")) + "_" + place + ".java";
         MethodDeclaration newMd = (MethodDeclaration) (newCu.getChildNodes().get(0)).getChildNodes().get(1);
         Common.writeSourceCode(newMd, transformFile);
@@ -111,27 +113,21 @@ public final class Common {
     }
 
     static boolean isNotPermeableStatement(Node node) {
-        return (node instanceof EmptyStmt
-                || node instanceof LabeledStmt
-                || node instanceof BreakStmt
-                || node instanceof ContinueStmt
-                || node instanceof ReturnStmt);
+        return (node instanceof EmptyStmt || node instanceof LabeledStmt || node instanceof BreakStmt
+                || node instanceof ContinueStmt || node instanceof ReturnStmt);
     }
 
     static boolean isAllPlaceApplicable(Object obj) {
-        return (obj instanceof VariableRenaming
-                || obj instanceof BooleanExchange
-                || obj instanceof LoopExchange
+        return (obj instanceof VariableRenaming || obj instanceof BooleanExchange || obj instanceof LoopExchange
                 || obj instanceof SwitchToIf);
     }
 
     /*
-        - X%-transformation
-            - Main.Java: Common.TH_PERCENT = args[0]
-            - VariableRenaming.Java: mVariableNodes = Common.getThList(mVariableNodes)
+     * - X%-transformation - Main.Java: Common.TH_PERCENT = args[0] -
+     * VariableRenaming.Java: mVariableNodes = Common.getThList(mVariableNodes)
      */
     static ArrayList<Node> getThList(ArrayList<Node> nodeList) {
-        int p = (int) Math.round(Common.TH_PERCENT/25);
+        int p = (int) Math.round(Common.TH_PERCENT / 25);
         if (p == 4) {
             return nodeList;
         } else if (nodeList.size() == 1) {
@@ -139,7 +135,7 @@ public final class Common {
         } else if (nodeList.size() == 2 && p != 2) {
             nodeList.clear();
         } else {
-            int kN = (int) Math.round(nodeList.size() * Common.TH_PERCENT/100);
+            int kN = (int) Math.round(nodeList.size() * Common.TH_PERCENT / 100);
             if (kN > 0) {
                 Collections.shuffle(nodeList);
                 int dK = nodeList.size() - kN;
