@@ -47,9 +47,7 @@ public class ASTExplorer implements Callable<Void> {
             new LoopExchange().inspectSourceCode(cu.clone());
             new SwitchToIf().inspectSourceCode(cu.clone());
             new BooleanExchange().inspectSourceCode(cu.clone());
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Exception ignore) {
         }
-        System.out.println("end");
     }
 }

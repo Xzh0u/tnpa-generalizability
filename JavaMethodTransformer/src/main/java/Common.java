@@ -17,6 +17,7 @@ public final class Common {
     static String ROOT_INPUT_DIR = "";
     static String ROOT_INPUT_CODE = "";
     static String ROOT_OUTPUT_DIR = "";
+    static String API_NAME = "";
     // static File CURRENT_JAVA_FILE = null;
     static String OUTPUT_JAVA_FILE = "";
 
@@ -26,7 +27,7 @@ public final class Common {
     };
 
     static void setOutputPath(Object obj) {
-        Common.OUTPUT_JAVA_FILE = Paths.get(Common.ROOT_OUTPUT_DIR, obj.getClass().getSimpleName(), "changed.java")
+        Common.OUTPUT_JAVA_FILE = Paths.get(Common.ROOT_OUTPUT_DIR, obj.getClass().getSimpleName(), API_NAME + ".java")
                 .toString();
     }
     // Common.CURRENT_JAVA_FILE.getPath().replaceFirst(Common.ROOT_INPUT_DIR, "")
@@ -94,7 +95,6 @@ public final class Common {
 
     static void saveTransformation(CompilationUnit newCu, String place) {
         String transformFile = Common.OUTPUT_JAVA_FILE;
-        // FIXME: Here is an error
         transformFile = transformFile.substring(0, transformFile.lastIndexOf(".java")) + "_" + place + ".java";
         MethodDeclaration newMd = (MethodDeclaration) (newCu.getChildNodes().get(0)).getChildNodes().get(1);
         Common.writeSourceCode(newMd, transformFile);
